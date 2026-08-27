@@ -51,28 +51,32 @@ def generate_page(from_path, template_path, dest_path, basepath):
     
     with open(from_path, "r") as f:
         markdown_content = f.read()
-        
     with open(template_path, "r") as f:
         template_content = f.read()
         
-    # Convert markdown to html string
-    # Assuming markdown_to_html_node is available and returns a node with .to_html()
     html_content = markdown_to_html_node(markdown_content).to_html()
     title = extract_title(markdown_content)
-
+    
     page = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
     
-    # Replace placeholders
-    page = page.replace('href="/', f'href="{basepath}')
-    page = page.replace('src="/', f'src="{basepath}')
+    # --- FIX: The Replacement Logic ---
+    # We must ensure basepath starts with / and ends with / to prevent double slashes
+    # Example: if basepath is "/REPO_NAME/", result is "/REPO_NAME/index.css"
+    # Example: if basepath is "/", result is "/index.css"
+    clean_basepath = f"/{basepath.strip('/')}/" if basepath != "/" else "/"
     
-    # Create directory if it doesn't exist
+    # We replace 'href="/' with 'href="/REPO_NAME/'
+    # Note: We use .replace('href="/', f'href="{clean_basepath}')
+    page = page.replace('href="/', f'href="{clean_basepath}')
+    page = page.replace('src="/', f'src="{clean_basepath}')
+    # ----------------------------------
+    
     dest_dir = os.path.dirname(dest_path)
     if dest_dir:
         os.makedirs(dest_dir, exist_ok=True)
-        
     with open(dest_path, "w") as f:
         f.write(page)
+
 
 def copy_contents(src, dst):
     # 1. Clean the destination directory
