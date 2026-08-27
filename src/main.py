@@ -46,7 +46,7 @@ def markdown_to_html_node(markdown):
     return ParentNode("div", children)
 
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     
     with open(from_path, "r") as f:
@@ -59,6 +59,8 @@ def generate_page(from_path, template_path, dest_path):
     # Assuming markdown_to_html_node is available and returns a node with .to_html()
     html_content = markdown_to_html_node(markdown_content).to_html()
     title = extract_title(markdown_content)
+
+    page = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
     
     # Replace placeholders
     page = page.replace('href="/', f'href="{basepath}')
@@ -113,7 +115,7 @@ def test_extract_title():
     except Exception as e:
         assert str(e) == "No h1 header found"
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     # Iterate through all files and directories in the content directory
     for filename in os.listdir(dir_path_content):
         from_path = os.path.join(dir_path_content, filename)
@@ -124,20 +126,21 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             if from_path.endswith(".md"):
                 # Change the destination extension to .html
                 dest_path = dest_path.replace(".md", ".html")
-                generate_page(from_path, template_path, dest_path)
+                generate_page(from_path, template_path, dest_path, basepath)
         else:
             # If it's a directory, create it in public and recurse
             os.makedirs(dest_path, exist_ok=True)
-            generate_pages_recursive(from_path, template_path, dest_path)
+            generate_pages_recursive(from_path, template_path, dest_path, basepath)
 
 def main():
     basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
     static_dir = "static"
     docs_dir = "docs"
+    content_dir = "contents"
     
     # 1. Clean and copy static files
     if os.path.exists(static_dir):
-        copy_contents(static_dir, public_dir)
+        copy_contents(static_dir, docs_dir)
     else:
         print(f"Source directory '{static_dir}' not found.")
     
