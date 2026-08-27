@@ -4,7 +4,7 @@ from markdown_blocks import *
 from inline_markdown import *
 from textnode import *
 
-
+import sys
 import os
 import shutil
 from pathlib import Path
@@ -61,7 +61,8 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(markdown_content)
     
     # Replace placeholders
-    page = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
+    page = page.replace('href="/', f'href="{basepath}')
+    page = page.replace('src="/', f'src="{basepath}')
     
     # Create directory if it doesn't exist
     dest_dir = os.path.dirname(dest_path)
@@ -130,10 +131,9 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             generate_pages_recursive(from_path, template_path, dest_path)
 
 def main():
+    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
     static_dir = "static"
-    public_dir = "public"
-    content_dir = "content"
-    template_path = "template.html"
+    docs_dir = "docs"
     
     # 1. Clean and copy static files
     if os.path.exists(static_dir):
@@ -143,9 +143,10 @@ def main():
     
     # 2. Generate content pages recursively
     if os.path.exists(content_dir):
-        generate_pages_recursive(content_dir, template_path, public_dir)
+        copy_contents(static_dir, docs_dir)
     else:
         print(f"Content directory '{content_dir}' not found.")
+    generate_pages_recursive("content", "template.html", docs_dir, basepath)
 
 if __name__ == "__main__":
     main()
