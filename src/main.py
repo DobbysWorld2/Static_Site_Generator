@@ -136,7 +136,6 @@ def main():
     basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
     static_dir = "static"
     docs_dir = "docs"
-    content_dir = "contents"
     
     # 1. Clean and copy static files
     if os.path.exists(static_dir):
@@ -145,7 +144,7 @@ def main():
         print(f"Source directory '{static_dir}' not found.")
     
     # 2. Generate content pages recursively
-    if os.path.exists(content_dir):
+    if os.path.exists(static_dir):
         copy_contents(static_dir, docs_dir)
     else:
         print(f"Content directory '{content_dir}' not found.")
